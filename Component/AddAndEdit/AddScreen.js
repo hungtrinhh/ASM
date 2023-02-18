@@ -12,17 +12,14 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { Checkbox, TextInput } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { POST } from "../../APIconfig";
 
 const RegisterScreen = (props) => {
-  console.log(props);
-
   const { navigation } = props;
   const { goBack } = navigation;
 
   const maxlengthName = useRef(null);
   const maxlengthAddress = useRef(null);
-  const maxlengthPhone = useRef(null);
-  const maxlengthLink = useRef(null);
 
   const [nameShop, setNameShop] = useState("");
   const [Address, setAddress] = useState("");
@@ -41,57 +38,36 @@ const RegisterScreen = (props) => {
   };
   useEffect(() => {
     checkDisableButton();
-  }, [linkLogo, nameShop, Address, Phonenumber]);
-  const checkURL = async (URL) => {
-    try {
-      return !(await fetch(URL)).status == 404;
-    } catch (error) {
-      return false;
-    }
-  };
+  }, [linkLogo, nameShop, Address, Phonenumber, Status]);
+
   const SaveToList = async () => {
-    setlistShop([
-      ...listShop,
+    let newObj = {
+      nameShop: nameShop,
+      Address: Address,
+      Phonenumber: Phonenumber,
+      linkLogo: linkLogo,
+      status: Status,
+    };
+    POST(newObj);
+    handleShowAlert();
+  };
+
+  const handleShowAlert = () => {
+    Alert.alert(
+      "Success!",
+      "Your action was successful.",
+      [
+        {
+          text: "OK",
+          onPress: () => navigation.goBack(),
+        },
+      ],
       {
-        id: listShop[listShop.length - 1]?.id + 1 || 1,
-        nameShop: nameShop,
-        Address: Address,
-        Phonenumber: Phonenumber,
-        linkLogo: linkLogo,
-      },
-    ]);
-
-    try {
-      console.log(listShop);
-      await AsyncStorage.setItem(
-        "ListShop",
-        JSON.stringify([
-          ...listShop,
-          {
-            id: listShop[listShop.length - 1]?.id + 1 || 1,
-            nameShop: nameShop,
-            Address: Address,
-            Phonenumber: Phonenumber,
-            linkLogo: linkLogo,
-          },
-        ])
-      );
-    } catch (error) {
-      console.log(error);
-    }
+        type: "success", // set the alert type to success
+        style: { backgroundColor: "green", color: "white" }, // customize the alert style
+      }
+    );
   };
-
-  const GetData = async () => {
-    try {
-      let list = await AsyncStorage.getItem("ListShop");
-      setlistShop(list ? JSON.parse(list) : []);
-    } catch (error) {
-      setlinkLogo([]);
-    }
-  };
-  useEffect(() => {
-    GetData();
-  }, []);
 
   const LabelTextinput = (props) => {
     return (

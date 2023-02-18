@@ -12,6 +12,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { Checkbox, TextInput } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GETFROMID, PUT } from "../../APIconfig";
 
 const RegisterScreen = (props) => {
   const { navigation, route } = props;
@@ -41,41 +42,17 @@ const RegisterScreen = (props) => {
   useEffect(() => {
     GetData();
   }, []);
-  const SaveToList = async () => {
-    let arrnew =  [...listShop].map((item) => {
-      if (item.id == id) {
-        item = {
-          id: id,
-          nameShop: nameShop,
-          Address: Address,
-          Phonenumber: Phonenumber,
-          linkLogo: linkLogo,
-        };
-      }
-      return item
-    });
-    setlistShop(arrnew);
-    console.log(arrnew);
-    try {
-        await AsyncStorage.setItem("ListShop", JSON.stringify([...arrnew]));
-    } catch (error) {}
-  };
 
   const GetData = async () => {
     try {
-      let list = await AsyncStorage.getItem("ListShop");
-      setlistShop(list ? JSON.parse(list) : []);
-      console.log(list);
-
-      let a = JSON.parse(list).find((item) => item.id == id);
-      console.log(a.id);
-      setAddress(a.Address);
-      setNameShop(a.nameShop);
-      setlinkLogo(a.linkLogo);
-      setPhonenumber(a.Phonenumber);
-    } catch (error) {
-      setlinkLogo([]);
-    }
+      let a = await GETFROMID(id);
+      console.log(id);
+      setAddress(a.Address + "");
+      setNameShop(a.nameShop + "");
+      setlinkLogo(a.linkLogo + "");
+      setPhonenumber(a.Phonenumber + "");
+      setStatus(a.status);
+    } catch (error) {}
   };
 
   const LabelTextinput = (props) => {
@@ -87,6 +64,24 @@ const RegisterScreen = (props) => {
       </Text>
     );
   };
+
+  const handleShowAlert = () => {
+    Alert.alert(
+      "Success!",
+      "Your action was successful.",
+      [
+        {
+          text: "OK",
+          onPress: () => navigation.goBack(),
+        },
+      ],
+      {
+        type: "success", // set the alert type to success
+        style: { backgroundColor: "green", color: "white" }, // customize the alert style
+      }
+    );
+  };
+
   useEffect(() => {
     Animated.timing(animatedValue, {
       toValue: 0,
@@ -211,7 +206,20 @@ const RegisterScreen = (props) => {
           <Text style={{ fontWeight: "600", fontSize: 16 }}> Status</Text>
         </View>
 
-        <TouchableOpacity disabled={disable} onPress={SaveToList}>
+        <TouchableOpacity
+          disabled={disable}
+          onPress={async () => {
+            await PUT({
+              id: id,
+              nameShop: nameShop,
+              Address: Address,
+              Phonenumber: Phonenumber,
+              linkLogo: linkLogo,
+              status: Status,
+            });
+            handleShowAlert();
+          }}
+        >
           <Text
             style={[
               styles.button,

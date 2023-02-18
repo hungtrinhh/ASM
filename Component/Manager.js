@@ -1,4 +1,5 @@
 import {
+  Alert,
   FlatList,
   Image,
   StyleSheet,
@@ -7,41 +8,43 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { DELETE, GET } from "../APIconfig";
+import { NavigationContainer, useIsFocused } from "@react-navigation/native";
 const Manager = (props) => {
   const { navigation } = props;
   const { navigate, goBack } = navigation;
   const [listShop, setlistShop] = useState([]);
-
+  const isforcused = useIsFocused();
   useEffect(() => {
     GetData();
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      GetData();
-    });
-  }, [navigation]);
-
-  const Delete = async (itemId) => {
-    const newArr = listShop.filter((item) => item.id != itemId);
-    await AsyncStorage.setItem("ListShop", JSON.stringify(newArr));
-    setlistShop(newArr);
-  };
+  }, [isforcused]);
 
   const GetData = async () => {
-    let Arr = await AsyncStorage.getItem("ListShop");
-    setlistShop(Arr ? JSON.parse(Arr) : []);
+    let value = await GET();
+    setlistShop(value);
   };
-
   const RenderItem = (props) => {
     let logoDefaut =
       "https://wowmart.vn/wp-content/uploads/2020/10/null-image.png";
 
     const { item } = props;
+    const handleDelete = () => {
+      Alert.alert("Confirmation", "Are you sure?", [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          onPress: async () => {
+            await DELETE(item.id);
+            let value = await GET();
+            setlistShop(value);
+          },
+        },
+      ]);
+    };
     const [linkimage, setlinkimage] = useState(item.linkLogo);
-
     return (
       <View
         style={{
@@ -83,6 +86,9 @@ const Manager = (props) => {
           <Text style={{ color: "#EEEEEE", fontWeight: "700", fontSize: 17 }}>
             Phonenumber: {item.Phonenumber}
           </Text>
+          <Text style={{ color: "#EEEEEE", fontWeight: "700", fontSize: 17 }}>
+            status: {item.status + ""}
+          </Text>
         </View>
         <View
           style={{
@@ -91,10 +97,7 @@ const Manager = (props) => {
             justifyContent: "center",
           }}
         >
-          <TouchableOpacity
-            style={{ marginBottom: 10 }}
-            onPress={() => Delete(item.id)}
-          >
+          <TouchableOpacity style={{ marginBottom: 10 }} onPress={handleDelete}>
             <Image
               source={require("../assets/trash.png")}
               style={{ width: 25, height: 25 }}
@@ -137,7 +140,6 @@ const Manager = (props) => {
     </View>
   );
 };
-
 export default Manager;
 
 const styles = StyleSheet.create({
