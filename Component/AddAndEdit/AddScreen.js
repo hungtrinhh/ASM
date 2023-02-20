@@ -11,8 +11,9 @@ import {
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Checkbox, TextInput } from "react-native-paper";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { POST } from "../../APIconfig";
+import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 
 const RegisterScreen = (props) => {
   const { navigation } = props;
@@ -68,7 +69,26 @@ const RegisterScreen = (props) => {
       }
     );
   };
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: true,
+    });
 
+    console.log(result);
+
+    if (!result.canceled) {
+      const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+        encoding: "base64",
+      });
+      setlinkLogo(`data:image/jpg;base64,` + base64);
+      console.log(`data:image/jpg;base64,` + base64);
+    }
+  };
   const LabelTextinput = (props) => {
     return (
       <Text
@@ -116,6 +136,7 @@ const RegisterScreen = (props) => {
       borderColor: "#050522",
     },
     input: {
+      width: "100%",
       paddingVertical: 5,
       marginVertical: 10,
       fontSize: 15,
@@ -195,16 +216,36 @@ const RegisterScreen = (props) => {
           label={<LabelTextinput label="Phonenumber" />}
           style={styles.input}
         />
-        <TextInput
-          value={linkLogo}
-          onChangeText={(text) => {
-            setlinkLogo(text);
-          }}
-          mode="outlined"
-          outlineStyle={[styles.inputboder]}
-          label={<LabelTextinput label="Link logo" />}
-          style={styles.input}
-        />
+        <View
+          style={{ flexDirection: "row", width: "100%", alignItems: "center" }}
+        >
+          <TouchableOpacity
+            style={{
+              width: "25%",
+              backgroundColor: "#4D455D",
+              paddingHorizontal: 10,
+              paddingVertical: 10,
+              marginRight: 5,
+              borderRadius: 5,
+            }}
+            onPress={(event) => {
+              pickImage();
+            }}
+          >
+            <Text style={{ color: "white", textAlign: "center" }}>Chose</Text>
+          </TouchableOpacity>
+          <TextInput
+            value={linkLogo}
+            onChangeText={(text) => {
+              setlinkLogo(text);
+            }}
+            mode="outlined"
+            outlineStyle={[styles.inputboder, { width: "73%" }]}
+            label={<LabelTextinput label="Link logo" />}
+            style={styles.input}
+          />
+        </View>
+
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Checkbox
             color="black"

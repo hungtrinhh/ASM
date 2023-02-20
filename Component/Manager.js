@@ -4,12 +4,14 @@ import {
   Image,
   StyleSheet,
   Text,
+  LayoutAnimation,
   TouchableOpacity,
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { DELETE, GET } from "../APIconfig";
 import { NavigationContainer, useIsFocused } from "@react-navigation/native";
+
 const Manager = (props) => {
   const { navigation } = props;
   const { navigate, goBack } = navigation;
@@ -23,11 +25,27 @@ const Manager = (props) => {
     let value = await GET();
     setlistShop(value);
   };
+
+  const layoutAnimConfig = {
+    duration: 300,
+    update: {
+      type: LayoutAnimation.Types.easeInEaseOut,
+    },
+    delete: {
+      duration: 100,
+      type: LayoutAnimation.Types.easeInEaseOut,
+      property: LayoutAnimation.Properties.opacity,
+    },
+  };
+
   const RenderItem = (props) => {
     let logoDefaut =
       "https://wowmart.vn/wp-content/uploads/2020/10/null-image.png";
 
     const { item } = props;
+
+    const [linkimage, setlinkimage] = useState(item.linkLogo);
+
     const handleDelete = () => {
       Alert.alert("Confirmation", "Are you sure?", [
         {
@@ -39,12 +57,13 @@ const Manager = (props) => {
           onPress: async () => {
             await DELETE(item.id);
             let value = await GET();
+
             setlistShop(value);
+            LayoutAnimation.configureNext(layoutAnimConfig);
           },
         },
       ]);
     };
-    const [linkimage, setlinkimage] = useState(item.linkLogo);
     return (
       <View
         style={{
@@ -136,6 +155,7 @@ const Manager = (props) => {
         style={{ width: "90%" }}
         data={listShop}
         renderItem={({ item }) => <RenderItem item={item} />}
+        keyExtractor={(item) => item.id}
       />
     </View>
   );

@@ -1,4 +1,4 @@
-export const URLAPI = "http://192.168.11.104:3000";
+export const URLAPI = "http://192.168.11.106:3000";
 
 export const GET = async () => {
   let res = await fetch(`${URLAPI}/data`);
